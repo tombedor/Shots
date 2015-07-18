@@ -3,4 +3,8 @@ class SoundController < ApplicationController
     backing = File.read('./app/assets/sounds/backing.mp3')
     send_data backing
   end
+
+  def yakit
+
+  end
 end
