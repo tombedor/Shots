@@ -1,76 +1,42 @@
 class Yakit
   # /tts is the function name, there might be others besides tts
-  YAKIT_URL= 'https://www.yakitome.com/api/rest/tts'
+  YAKIT_URL= 'https://www.yakitome.com/api/rest/'
+  HERD_ID = 196376
 
   require 'net/https'
   require 'open-uri'
 
   def api_key
-    return @api_key if @api_key
-    @api_key = HashWithIndifferentAccess.new(YAML.load(File.read(File.expand_path("#{Rails.root}/config/secrets.yml", __FILE__))))['yakit_key']
+    @api_key ||= HashWithIndifferentAccess.new(YAML.load(File.read(File.expand_path("#{Rails.root}/config/secrets.yml", __FILE__))))['yakit_key']
   end
 
-  def get_recording(text)
-    data = {
-      'api_key' => api_key,
-      'voice' => 'Mike',
-      'speed' => 5,
-      'text' => text}
+  def myherds
+    make_request('myherds')
+  end
 
+  def audio_files
+    data = {book_id: HERD_ID, format: 'mp3'}
+    make_request('audio', data)
+  end
 
-    url = URI.parse(YAKIT_URL)
+  def make_request(function, data = {})
+    url = URI.parse(YAKIT_URL + function)
+    data['api_key'] = api_key
     req = Net::HTTP::Post.new(url.path)
     req.form_data = data
+    binding.pry
     req.basic_auth url.user, url.password if url.user
     con = Net::HTTP.new(url.host, url.port)
     con.use_ssl = true
-    con.start {|http| http.request(req)}
+    response = con.start {|http| http.request(req)}
+    JSON.parse(response.body)
   end
 
-
-
-
-
-
-
-
-
-  ##### Copied from python,
-
-  import httplib
-  import urllib
-  def rest(request_type, api_func, vars):
-    """performs RESTful calls to YAKiToMe API functions"""
-  headers = {
-    "Content-type": "application/x-www-form-urlencoded",
-    "Accept": "text/plain"
-  }
-  conn = httplib.HTTPSConnection('www.yakitome.com')
-  conn.request(request_type,
-               '/api/rest/%s' % api_func,
-               urllib.urlencode(vars),
-               headers,
-  )
-  response = conn.getresponse()
-  return response.read()
-
-  # setup variables
-  vars = dict(
-    api_key=my_api_key,
-    voice='Mike',
-    speed=5,
-    text='Hello world!'
-  )
-  # POST data to tts function
-  tts_response = rest('POST', 'tts', vars)
-
-  def initialize
-    @key = HashWithIndifferentAccess.new(YAML.load(File.read(File.expand_path("#{Rails.root}/config/secrets.yml", __FILE__))))['yakit_key']
+  def create_recording(text)
+    data = {
+      'voice' => 'Mike',
+      'speed' => 5,
+      'text' => text}
+    response = make_request('tts', data)
   end
-
-  def sample
-    rest('POST', 'tts', vars)
-
-  end
-
 end
