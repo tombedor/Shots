@@ -1,4 +1,4 @@
-class Yakit
+class Song < ActiveRecord::Base
   require 'open-uri'
   # /tts is the function name, there might be others besides tts
   YAKIT_URL= 'https://www.yakitome.com/api/rest/'
@@ -10,6 +10,33 @@ class Yakit
   def initialize(text)
     @text = text
   end
+
+  def create
+    return if File.exist?(filename)
+    download
+  end
+
+  def filename
+    "./tmp/audio_files/#{book_id}.mp3"
+  end
+
+  def download
+    if audio_link.nil?
+      puts 'file not ready, sleeping 5 seconds...'
+      sleep 5
+      download
+    else
+      open(filename, 'wb') do |file|
+        file << open(audio_link).read
+      end
+    end
+  end
+
+  def persisted?
+    false
+  end
+
+  private
 
   def text
     @text
@@ -26,18 +53,6 @@ class Yakit
 
   def myherds
     make_request('myherds')
-  end
-
-  def download
-    if audio_link.nil?
-      puts 'file not ready, sleeping 5 seconds...'
-      sleep 5
-      download
-    else
-      open("./tmp/audio_files/#{book_id}.mp3", 'wb') do |file|
-        file << open(audio_link).read
-      end
-    end
   end
 
   def audio_link
@@ -57,12 +72,13 @@ class Yakit
   end
 
   def book_id
-    return @book_id if !@book_id.nil?
-    data = {
-      'voice' => 'Mike',
-      'speed' => 5,
-      'text' => text}
-    response = make_request('tts', data)
-    @book_id = response['book_id']
+    Rails.cache.fetch("word-#{text}") do
+      data = {
+        'voice' => 'Mike',
+        'speed' => 5,
+        'text' => text}
+      response = make_request('tts', data)
+      @book_id = response['book_id']
+    end
   end
 end
