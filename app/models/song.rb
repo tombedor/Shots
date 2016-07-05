@@ -7,57 +7,63 @@ class Song < ActiveRecord::Base
   require 'net/https'
   require 'open-uri'
 
-  def initialize(text)
-    @text = text
+  def setup
+    get_book_id
+    get_audio_link
+    download_voice_audio
   end
 
-  def create
-    return if File.exist?(filename)
-    download
+  def voice_path
+    "./tmp/audio_files/lyrics/#{yakit_book_id}.mp3"
   end
 
-  def filename
-    "./tmp/audio_files/#{book_id}.mp3"
+  def song_path
+    "./tmp/audio_files/songs/#{yakit_book_id}.mp3"
   end
 
-  def download
-    if audio_link.nil?
+  def download_voice_audio
+    puts 'downloading voice audio'
+    if File.exists? voice_path
+      puts 'voice audio exists, returning'
+      return true
+    end
+    get_audio_link if audio_link.nil?
+    open(voice_path, 'wb') do |file|
+      file << open(audio_link).read
+    end
+    true
+  end
+
+  def get_audio_link
+    return audio_link if !audio_link.nil?
+    puts "retrieving audio link"
+    link = make_request('audio', {book_id: yakit_book_id, format: 'mp3'})['audios'][0]
+    if link.nil?
       puts 'file not ready, sleeping 5 seconds...'
       sleep 5
-      download
+      return get_audio_link
     else
-      open(filename, 'wb') do |file|
-        file << open(audio_link).read
-      end
+      self.update_attributes!(audio_link: link)
     end
   end
 
-  def persisted?
-    false
+  def get_book_id
+    return yakit_book_id if !yakit_book_id.nil?
+    puts "retreiving book id"
+      data = {
+        'voice' => 'Mike',
+        'speed' => 5,
+        'text' => lyric}
+      response = make_request('tts', data)
+      self.update_attributes(yakit_book_id: response['book_id'])
   end
 
   private
-
-  def text
-    @text
+  def song_params
+    params.require(:lyric)
   end
 
-  def api_key
-    @api_key ||= HashWithIndifferentAccess.new(YAML.load(File.read(File.expand_path("#{Rails.root}/config/secrets.yml", __FILE__))))['yakit_key']
-  end
 
-  def status
-    data = {book_id: book_id}
-    make_request('status', data)['status']
-  end
-
-  def myherds
-    make_request('myherds')
-  end
-
-  def audio_link
-    @audio_link ||= make_request('audio', {book_id: book_id, format: 'mp3'})['audios'][0]
-  end
 
   def make_request(function, data = {})
     url = URI.parse(YAKIT_URL + function)
@@ -71,14 +77,17 @@ class Song < ActiveRecord::Base
     JSON.parse(response.body)
   end
 
-  def book_id
-    Rails.cache.fetch("word-#{text}") do
-      data = {
-        'voice' => 'Mike',
-        'speed' => 5,
-        'text' => text}
-      response = make_request('tts', data)
-      @book_id = response['book_id']
-    end
+  def api_key
+    @api_key ||= HashWithIndifferentAccess.new(YAML.load(File.read(File.expand_path("#{Rails.root}/config/secrets.yml", __FILE__))))['yakit_key']
   end
+
+  # potentially useful at some point
+  # def myherds
+  #   make_request('myherds')
+  # end
+
+  # def status
+  #   data = {book_id: yakit_book_id}
+  #   make_request('status', data)['status']
+  # end
 end
