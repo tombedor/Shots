@@ -1,7 +1,7 @@
 <%= form_for :song, :url => songs_path do |f| %>
   <p>
-    <%= f.label :text %>
-    <%= f.text_field :text, placeholder: 'Text!' %><br>
+    <%= f.label :lyric %>
+    <%= f.text_field :lyric, placeholder: 'Party lyric!' %><br>
   </p>
   <p>
     <%= f.submit 'Save' %>

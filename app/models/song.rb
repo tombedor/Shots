@@ -1,4 +1,5 @@
 class Song < ActiveRecord::Base
+  attr_accessible :lyric
   require 'open-uri'
   # /tts is the function name, there might be others besides tts
   YAKIT_URL= 'https://www.yakitome.com/api/rest/'
@@ -60,10 +61,8 @@ class Song < ActiveRecord::Base
 
   private
   def song_params
-    params.require(:lyric)
+    params.require(:song).permit(:lyric)
   end
-
-
 
   def make_request(function, data = {})
     url = URI.parse(YAKIT_URL + function)

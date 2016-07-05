@@ -8,9 +8,12 @@ class SongsController < ApplicationController
   end
 
   def create
-    text = params['song']['text']
-    @song = Song.new(text)
-    @song.create
+    @song = Song.find_or_create_by!(params['song'])
+    @song.setup
     redirect_to @song
+  end
+
+  def show
+    @song = Song.find(params['id'])
   end
 end
