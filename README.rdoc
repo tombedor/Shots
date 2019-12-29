@@ -1,2 +1,0 @@
-http://blog.terrenceryan.com/web-audio-api-setting-playbackrate/
-http://ctrlq.org/code/19147-text-to-speech-php
