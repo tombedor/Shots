@@ -12,7 +12,7 @@ SAY_STRING=""
 
 # say -r doesn't work.. the word spacing is not consistent. So, we get one repetition of the word
 echo "writing word file"
-say $WORD -o word.aiff
+say $WORD -o word.aiff -v Fred
 
 # trim silence https://digitalcardboard.com/blog/2009/08/25/the-sox-of-silence/comment-page-2/
 echo "trimming leading silence of word file"
@@ -24,18 +24,18 @@ echo "clip length is ${ORIGINAL_CLIP_LENGTH_SECONDS} seconds"
 DESIRED_CLIP_LENGTH_SECONDS=`echo "60.0/${BPM}.0" | bc -l`
 echo "desired clip length is ${DESIRED_CLIP_LENGTH_SECONDS} seconds"
 
-CLIP_TOO_LONG=`echo "$DESIRED_CLIP_LENGTH_SECONDS < $ORIGINAL_CLIP_LENGTH_SECONDS" | bc`
 
-if [ $CLIP_TOO_LONG -gt 0 ]; then
-	echo "Clip is too long!"
-	SCALE_FACTOR=`echo "${ORIGINAL_CLIP_LENGTH_SECONDS}/${DESIRED_CLIP_LENGTH_SECONDS}" | bc -l`
-	echo "Scale factor is ${SCALE_FACTOR}"
-	sox word_trimmed.aiff word_tempod.aiff tempo $SCALE_FACTOR
+SCALE_FACTOR=`echo "${ORIGINAL_CLIP_LENGTH_SECONDS}/${DESIRED_CLIP_LENGTH_SECONDS}" | bc -l`
+echo "Scale factor is ${SCALE_FACTOR}"
+sox word_trimmed.aiff word_tempod.aiff tempo $SCALE_FACTOR
+
+sox word_tempod.aiff word_1_2.aiff repeat 1
+sox word_tempod.aiff word_3_4.aiff tempo 1.5 repeat 2
+
+sox -n -r 22050  silence.aiff trim 0.0 `echo "${DESIRED_CLIP_LENGTH_SECONDS}*2" | bc`
+
+sox word_1_2.aiff word_3_4.aiff words_repeated.aiff repeat 10
 
 
-
-fi
-
-sox word_tempod.aiff word_repeated.aiff repeat 50
-sox -m shots_instruments_128_bpm_sampled.aiff word_repeated.aiff mixed.aiff
+sox -m shots_instruments_128_bpm_sampled.aiff words_repeated.aiff mixed.aiff
 play mixed.aiff

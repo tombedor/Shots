@@ -1,0 +1,10 @@
+<a> hello</a>
+<script>
+	audioObj = new Audio("shots_instruments_128_bpm_sampled.aiff");
+	audioObj.addEventListener("canplaythrough", event => {
+	  /* the audio is now playable; play it if permissions allow */
+	  audioObj.play();
+});
+
+	alert("hello")
+</script>
