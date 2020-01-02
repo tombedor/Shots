@@ -3,11 +3,11 @@ set -exuo pipefail
 
 # requires say and sox
 
-BPM=128
-SONG=shots_instruments_128_bpm_sampled.aiff
+#BPM=128
+#SONG=shots_instruments_128_bpm_sampled.aiff
 
-#BPM=60
-#SONG=smooth_jazz.aiff
+BPM=60
+SONG=smooth_jazz.aiff
 
 mkdir -p tmp
 
@@ -38,7 +38,9 @@ do
 	i=$((i + 1))
 done < "${1:-/dev/stdin}"
 
-
+sox airhorn.aiff airhorn_repeat.aiff repeat 10
+sox yeah_what_ok.aiff yeah_what_ok_repeat.aiff repeat 20
 sox $files tmp/speech.aiff repeat 10
+#sox -m tmp/speech.aiff $SONG yeah_what_ok_repeat.aiff tmp/mixed.aiff
 sox -m tmp/speech.aiff $SONG tmp/mixed.aiff
 play tmp/mixed.aiff
