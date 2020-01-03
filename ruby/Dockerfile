@@ -1,5 +1,5 @@
 # Use the base image provided by Google
-FROM gcr.io/google_appengine/ruby
+FROM gcr.io/google_appengine/ruby:latest
 
 # Copy the application files.
 COPY . /app/
