@@ -7,11 +7,12 @@ set -exuo pipefail
 SOUND_CLIPS_DIR="./sounds"
 TMP_DIR="./tmp"
 
-#BPM=128
-#SONG=${SOUND_CLIPS_DIR}/shots_instruments_128_bpm_sampled.aiff
+BPM=128
+SONG=${SOUND_CLIPS_DIR}/shots_instruments_128_bpm_sampled.aiff
 
-BPM=60
-SONG=${SOUND_CLIPS_DIR}/smooth_jazz.aiff
+#BPM=60
+#SONG=${SOUND_CLIPS_DIR}/smooth_jazz.aiff
+#SONG=${SOUND_CLIPS_DIR}/shots_instruments_128_bpm_sampled.aiff
 
 
 mkdir -p tmp
